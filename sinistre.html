@@ -51,6 +51,51 @@
           </aside>
         </div>
       </section>
+      <section class="band claim-form-section">
+        <div class="section-head compact">
+          <p class="eyebrow">D&eacute;claration</p>
+          <h2>Transmettre une premi&egrave;re d&eacute;claration de sinistre.</h2>
+          <p>Ce formulaire pr&eacute;pare les informations utiles pour l'agence. La validation du dossier et des garanties se fait ensuite avec un conseiller.</p>
+        </div>
+        <form class="quote-form claim-form" data-claim-form>
+          <div class="form-heading">
+            <p class="eyebrow">Sinistre</p>
+            <h2>Informations du dossier</h2>
+          </div>
+          <div class="form-row">
+            <label>Nom complet<input type="text" name="name" autocomplete="name" required></label>
+            <label>T&eacute;l&eacute;phone<input type="tel" name="phone" autocomplete="tel" required></label>
+          </div>
+          <div class="form-row">
+            <label>Produit concern&eacute;
+              <select name="product" data-claim-product required>
+                <option value="">Choisir un produit</option>
+                <option value="automobile">Automobile</option>
+                <option value="habitation">Multirisques habitation</option>
+                <option value="sante">Sant&eacute; / Vie</option>
+                <option value="responsabilite">Responsabilit&eacute; civile</option>
+                <option value="travail">Accident de travail</option>
+                <option value="professionnel">Professionnel / autres</option>
+              </select>
+            </label>
+            <label>Date du sinistre<input type="date" name="claim_date" required></label>
+          </div>
+          <label>Lieu du sinistre<input type="text" name="claim_place" placeholder="Ville, adresse ou lieu approximatif" required></label>
+          <label>Description du sinistre<textarea name="message" rows="5" placeholder="Expliquez bri&egrave;vement les circonstances, les dommages et les personnes concern&eacute;es." required></textarea></label>
+          <div class="auto-claim-fields is-hidden" data-auto-claim-fields>
+            <h3>Pi&egrave;ces automobile</h3>
+            <label>Immatriculation<input type="text" name="registration" data-auto-required placeholder="Exemple : 123456-A-80"></label>
+            <div class="form-row form-row-three">
+              <label>Constat<input type="file" name="constat" data-auto-required accept=".pdf,.jpg,.jpeg,.png"></label>
+              <label>Carte grise<input type="file" name="carte_grise" data-auto-required accept=".pdf,.jpg,.jpeg,.png"></label>
+              <label>Assurance<input type="file" name="assurance" data-auto-required accept=".pdf,.jpg,.jpeg,.png"></label>
+            </div>
+          </div>
+          <label>Autres documents utiles<input type="file" name="attachments" multiple accept=".pdf,.jpg,.jpeg,.png"></label>
+          <button class="btn btn-primary btn-arrow" type="submit">Envoyer la d&eacute;claration</button>
+          <p class="form-note" data-claim-form-note>Les fichiers ne sont pas encore transmis &agrave; un serveur : ce formulaire est pr&ecirc;t pour une int&eacute;gration email, CRM ou espace sinistre.</p>
+        </form>
+      </section>
     </main>
     <footer class="site-footer">
       <div class="footer-brand-block"><img src="assets/logo-islane-blanc.png" alt="Assurances Islane"><p>Islane Assurance, bas&eacute;e &agrave; Agadir, est votre partenaire de confiance pour toutes vos protections. Sp&eacute;cialis&eacute;e dans une large gamme d'assurances, elle propose des solutions adapt&eacute;es &agrave; vos besoins : automobile, multirisques habitation, responsabilit&eacute; civile, accident de travail, ainsi que sant&eacute; et vie.<br><br>B&eacute;n&eacute;ficiez d'un accompagnement personnalis&eacute; et de garanties solides pour s&eacute;curiser votre quotidien et celui de vos proches.</p></div>

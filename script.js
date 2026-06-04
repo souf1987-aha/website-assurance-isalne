@@ -13,6 +13,11 @@ const chatbotPanel = document.querySelector("[data-chatbot-panel]");
 const chatbotMessages = document.querySelector("[data-chatbot-messages]");
 const chatbotSuggestions = document.querySelector("[data-chatbot-suggestions]");
 const chatbotForm = document.querySelector("[data-chatbot-form]");
+const claimForm = document.querySelector("[data-claim-form]");
+const claimProduct = document.querySelector("[data-claim-product]");
+const autoClaimFields = document.querySelector("[data-auto-claim-fields]");
+const autoRequiredFields = document.querySelectorAll("[data-auto-required]");
+const claimFormNote = document.querySelector("[data-claim-form-note]");
 
 if (logo) {
   logo.addEventListener("error", () => {
@@ -65,6 +70,43 @@ form?.addEventListener("submit", (event) => {
   formNote.textContent = `${name}, votre demande est pr\u00eate. Branchez ce formulaire \u00e0 l'email ou WhatsApp de l'agence pour l'envoi r\u00e9el.`;
   formNote.classList.add("is-success");
   form.reset();
+});
+
+const syncAutoClaimFields = () => {
+  const isAuto = claimProduct?.value === "automobile";
+  autoClaimFields?.classList.toggle("is-hidden", !isAuto);
+  autoRequiredFields.forEach((field) => {
+    if (field instanceof HTMLInputElement) {
+      field.required = Boolean(isAuto);
+      if (!isAuto) {
+        field.value = "";
+      }
+    }
+  });
+};
+
+claimProduct?.addEventListener("change", syncAutoClaimFields);
+syncAutoClaimFields();
+
+claimForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  if (!claimForm.checkValidity()) {
+    claimForm.reportValidity();
+    return;
+  }
+
+  const data = new FormData(claimForm);
+  const name = String(data.get("name") || "").trim().split(" ")[0] || "Votre déclaration";
+  const product = String(data.get("product") || "");
+
+  claimFormNote.textContent =
+    product === "automobile"
+      ? `${name}, votre déclaration auto est prête avec les pièces demandées. Branchez ce formulaire à l'email, CRM ou espace sinistre pour l'envoi réel.`
+      : `${name}, votre déclaration est prête. Branchez ce formulaire à l'email, CRM ou espace sinistre pour l'envoi réel.`;
+  claimFormNote.classList.add("is-success");
+  claimForm.reset();
+  syncAutoClaimFields();
 });
 
 const quickQuestions = [
