@@ -9,3 +9,5 @@ build/
 *.log
 .env
 .env.*
+
+PROJECT_RECAP.md
