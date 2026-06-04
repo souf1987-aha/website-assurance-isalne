@@ -29,13 +29,98 @@
         <div class="page-hero-visual"><img src="assets/pages/produits.png" alt="Documents d'assurance dans un contexte marocain"><div class="page-hero-card light-card"><h2>Besoin d'orientation&nbsp;?</h2><p>L'agence compare votre situation, vos obligations et votre budget avant de proposer une formule.</p></div></div>
       </section>
       <section>
+        <div class="product-tabs" role="tablist" aria-label="Filtrer les produits">
+          <button class="tab is-active" type="button" data-filter="all">Tout</button>
+          <button class="tab" type="button" data-filter="particuliers">Particuliers</button>
+          <button class="tab" type="button" data-filter="entreprises">Professionnels</button>
+        </div>
+
         <div class="product-grid">
-          <article class="product-card"><span class="card-icon product-icon product-icon-auto" aria-hidden="true"></span><h3>Automobile</h3><p>Protection véhicule, responsabilité civile, dommages, assistance et flotte.</p><a href="automobile.html">Voir la page</a></article>
-          <article class="product-card"><span class="card-icon product-icon product-icon-home" aria-hidden="true"></span><h3>Multirisques</h3><p>Habitation, commerce, bureau, industrie et risques techniques.</p><a href="multirisques.html">Voir la page</a></article>
-          <article class="product-card"><span class="card-icon product-icon product-icon-work" aria-hidden="true"></span><h3>Accident de Travail</h3><p>Couverture obligatoire des salariés et accompagnement employeur.</p><a href="accident-travail.html">Voir la page</a></article>
-          <article class="product-card"><span class="card-icon product-icon product-icon-rc" aria-hidden="true"></span><h3>Responsabilité Civile</h3><p>RC exploitation, professionnelle, scolaire, sportive ou décennale.</p><a href="responsabilite-civile.html">Voir la page</a></article>
-          <article class="product-card"><span class="card-icon product-icon product-icon-health" aria-hidden="true"></span><h3>Santé & Vie</h3><p>Santé internationale, prévoyance, retraite et solutions collectives.</p><a href="sante-vie.html">Voir la page</a></article>
-          <article class="product-card"><span class="card-icon product-icon product-icon-shield" aria-hidden="true"></span><h3>Assistance</h3><p>Accompagnement voyage, auto, sinistre et démarches administratives.</p><a href="assistance.html">Voir la page</a></article>
+          <article class="product-card" data-category="particuliers" id="particuliers">
+            <span class="card-icon product-icon product-icon-auto" aria-hidden="true"></span>
+            <h3>Assurance Auto+</h3>
+            <p>Responsabilité civile, dommages, vol, incendie, assistance et services d'indemnisation selon la formule choisie.</p>
+            <a href="automobile.html">Demander conseil</a>
+          </article>
+          <article class="product-card" data-category="particuliers">
+            <span class="card-icon product-icon product-icon-home" aria-hidden="true"></span>
+            <h3>Multirisque Habitation</h3>
+            <p>Protection du logement, biens mobiliers, dégâts des eaux, incendie, vol et responsabilité civile familiale.</p>
+            <a href="multirisques.html">Protéger mon logement</a>
+          </article>
+          <article class="product-card" data-category="particuliers">
+            <span class="card-icon product-icon product-icon-health" aria-hidden="true"></span>
+            <h3>Santé Internationale</h3>
+            <p>Couverture santé et hospitalisation au Maroc ou à l'étranger, selon le profil et le niveau de garantie.</p>
+            <a href="sante-vie.html">Comparer les options</a>
+          </article>
+          <article class="product-card" data-category="particuliers">
+            <span class="card-icon product-icon product-icon-life" aria-hidden="true"></span>
+            <h3>Hayat Retraite</h3>
+            <p>Constitution progressive d'une épargne retraite et solutions de prévoyance pour préparer l'avenir.</p>
+            <a href="sante-vie.html">Simuler mon besoin</a>
+          </article>
+          <article class="product-card" data-category="particuliers">
+            <span class="card-icon product-icon product-icon-boat" aria-hidden="true"></span>
+            <h3>Multirisque Plaisance</h3>
+            <p>Garanties dédiées aux embarcations de plaisance, responsabilité, dommages et assistance selon usage.</p>
+            <a href="assistance.html">Être accompagné</a>
+          </article>
+          <article class="product-card" data-category="particuliers">
+            <span class="card-icon product-icon product-icon-shield" aria-hidden="true"></span>
+            <h3>Individuelle Accidents</h3>
+            <p>Un capital ou des prestations en cas d'accident de la vie privée, professionnelle ou lors de déplacements.</p>
+            <a href="assistance.html">Vérifier les garanties</a>
+          </article>
+
+          <article class="product-card" data-category="entreprises" id="entreprises">
+            <span class="card-icon product-icon product-icon-office" aria-hidden="true"></span>
+            <h3>Pro+ Al Maktab</h3>
+            <p>Multirisque bureau pour professions libérales, TPE et PME: locaux, matériel, responsabilités et assistance.</p>
+            <a href="multirisques.html">Assurer mon bureau</a>
+          </article>
+          <article class="product-card" data-category="entreprises">
+            <span class="card-icon product-icon product-icon-shop" aria-hidden="true"></span>
+            <h3>Multirisque Commerçant</h3>
+            <p>Protection de l'activité commerciale contre incendie, vol, dégâts, pertes et responsabilité civile.</p>
+            <a href="multirisques.html">Évaluer mes risques</a>
+          </article>
+          <article class="product-card" data-category="entreprises">
+            <span class="card-icon product-icon product-icon-fleet" aria-hidden="true"></span>
+            <h3>Flotte Salariés & Entreprises</h3>
+            <p>Couverture de parcs automobiles professionnels, véhicules de service, utilitaires et engins selon activité.</p>
+            <a href="automobile.html">Optimiser ma flotte</a>
+          </article>
+          <article class="product-card" data-category="entreprises">
+            <span class="card-icon product-icon product-icon-rc" aria-hidden="true"></span>
+            <h3>Responsabilité Civile</h3>
+            <p>RC exploitation, RC décennale, scolaire ou sport pour couvrir les dommages causés aux tiers.</p>
+            <a href="responsabilite-civile.html">Choisir ma RC</a>
+          </article>
+          <article class="product-card" data-category="entreprises">
+            <span class="card-icon product-icon product-icon-transport" aria-hidden="true"></span>
+            <h3>Transport & Logistique</h3>
+            <p>RC transport, marchandises transportées, logistique et garanties adaptées aux flux terrestres, maritimes ou aériens.</p>
+            <a href="assistance.html">Couvrir mes marchandises</a>
+          </article>
+          <article class="product-card" data-category="entreprises">
+            <span class="card-icon product-icon product-icon-tech" aria-hidden="true"></span>
+            <h3>Risques Techniques</h3>
+            <p>Bris de machine, tous risques informatiques, multirisque industrielle et tous risques chantier.</p>
+            <a href="conseil-expertise.html">Analyser mon activité</a>
+          </article>
+          <article class="product-card" data-category="entreprises">
+            <span class="card-icon product-icon product-icon-work" aria-hidden="true"></span>
+            <h3>Accidents du Travail</h3>
+            <p>Couverture des salariés, frais médicaux, indemnités, rentes et extensions pour missions ou trajets.</p>
+            <a href="accident-travail.html">Mettre en conformité</a>
+          </article>
+          <article class="product-card" data-category="entreprises">
+            <span class="card-icon product-icon product-icon-group" aria-hidden="true"></span>
+            <h3>Retraite Groupe & Santé</h3>
+            <p>Solutions collectives pour fidéliser les collaborateurs: retraite, prévoyance et complémentaire santé.</p>
+            <a href="sante-vie.html">Structurer un avantage</a>
+          </article>
         </div>
       </section>
     </main>
