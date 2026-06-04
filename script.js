@@ -257,7 +257,7 @@ const closeChatbot = () => {
 
 if (chatbot && chatbotMessages && chatbotSuggestions) {
   appendChatMessage(
-    "Bonjour, je suis l'assistant Islane. Posez-moi une question sur un devis, un sinistre, une garantie ou les coordonnées de l'agence."
+    "Bonjour, je suis l'assistant Islane. Posez-moi une question sur un devis, un sinistre, une garantie ou les coordonnées de l'agence. Mes réponses sont informatives; la validation finale se fait auprès de l'agence."
   );
 
   quickQuestions.forEach((question) => {
