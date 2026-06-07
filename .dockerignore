@@ -5,3 +5,7 @@ docker-compose.yml
 README.md
 *.log
 node_modules
+api/
+.env
+.env.*
+!.env.example

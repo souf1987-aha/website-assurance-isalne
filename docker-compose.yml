@@ -1,8 +1,30 @@
 services:
+  api:
+    build: ./api
+    image: assurances-islane-api:latest
+    container_name: assurances-islane-api
+    restart: unless-stopped
+    environment:
+      WHATSAPP_TOKEN: ${WHATSAPP_TOKEN:-}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_TO: ${WHATSAPP_TO:-212661744550}
+      WHATSAPP_TO_REQUEST: ${WHATSAPP_TO_REQUEST:-${WHATSAPP_TO:-212661744550}}
+      WHATSAPP_TO_CLAIM: ${WHATSAPP_TO_CLAIM:-${WHATSAPP_TO:-212661744550}}
+      WHATSAPP_API_VERSION: ${WHATSAPP_API_VERSION:-v21.0}
+      WHATSAPP_TEMPLATE_LANGUAGE: ${WHATSAPP_TEMPLATE_LANGUAGE:-fr}
+      WHATSAPP_TEMPLATE_REQUEST_NAME: ${WHATSAPP_TEMPLATE_REQUEST_NAME:-}
+      WHATSAPP_TEMPLATE_REQUEST_PARAMS: ${WHATSAPP_TEMPLATE_REQUEST_PARAMS:-message}
+      WHATSAPP_TEMPLATE_DEVIS_NAME: ${WHATSAPP_TEMPLATE_DEVIS_NAME:-}
+      WHATSAPP_TEMPLATE_CLAIM_NAME: ${WHATSAPP_TEMPLATE_CLAIM_NAME:-}
+      WHATSAPP_TEMPLATE_CLAIM_PARAMS: ${WHATSAPP_TEMPLATE_CLAIM_PARAMS:-message}
+      WHATSAPP_TEMPLATE_CLAIM_HAS_DOCUMENT_HEADER: ${WHATSAPP_TEMPLATE_CLAIM_HAS_DOCUMENT_HEADER:-false}
+
   website:
     build: .
     image: assurances-islane-site:latest
     container_name: assurances-islane-site
     restart: unless-stopped
+    depends_on:
+      - api
     ports:
-      - "8080:80"
+      - "${SITE_PORT:-8080}:80"

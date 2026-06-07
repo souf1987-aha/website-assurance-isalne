@@ -43,9 +43,9 @@
           <label>Nom complet<input type="text" name="name" autocomplete="name" required></label>
           <label>Téléphone<input type="tel" name="phone" autocomplete="tel" required></label>
           <label>Objet<select name="product" required><option value="">Choisir un objet</option><option>Demande d'information</option><option>Devis</option><option>Sinistre</option><option>Renouvellement</option></select></label>
-          <label>Message<textarea name="message" rows="5"></textarea></label>
+          <label>Message<textarea name="message" rows="5" maxlength="1024"></textarea></label>
           <button class="btn btn-primary btn-arrow" type="submit">Envoyer</button>
-          <p class="form-note" data-form-note>Ce formulaire est prêt pour intégration avec email, CRM ou WhatsApp.</p>
+          <p class="form-note" data-form-note>Le message sera pr&eacute;par&eacute; automatiquement dans WhatsApp.</p>
         </form>
       </section>
     </main>
@@ -68,7 +68,7 @@
         <a href="multirisques.html">Multirisques</a>
         <a href="sante-vie.html">Sant&eacute; &amp; Vie</a>
         <a href="responsabilite-civile.html">Responsabilit&eacute; Civile</a>
-        <span>Agent agr&eacute;&eacute; AtlantaSanad</span>
+        
       </div>
       <div class="footer-column">
         <h3>Contact</h3>
@@ -78,6 +78,7 @@
         <a href="https://wa.me/212661744550" target="_blank" rel="noopener">WhatsApp</a>
         <a href="https://www.google.com/maps/search/?api=1&amp;query=9FW6%2B35%20Agadir" target="_blank" rel="noopener">Google Maps</a>
       </div>
+      <div class="footer-legal-note">Agent d'assurance g&eacute;r&eacute; par la loi 17-99 portant le code des assurances</div>
     </footer>
     <section class="chatbot" data-chatbot aria-label="Assistant virtuel Assurances Islane">
       <button class="chatbot-toggle" type="button" data-chatbot-toggle aria-label="Ouvrir le chatbot" aria-expanded="false">

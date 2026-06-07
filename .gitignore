@@ -9,5 +9,6 @@ build/
 *.log
 .env
 .env.*
+!.env.example
 
 PROJECT_RECAP.md

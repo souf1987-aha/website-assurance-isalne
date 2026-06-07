@@ -374,6 +374,34 @@ h3 {
   transform: translateY(-2px);
 }
 
+.btn:disabled,
+.btn.is-loading {
+  cursor: wait;
+  opacity: 0.78;
+  transform: none;
+}
+
+.btn.is-loading::before {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-top-color: var(--white);
+  border-radius: 50%;
+  content: "";
+  animation: spin 700ms linear infinite;
+}
+
+.btn.is-loading.btn-secondary::before {
+  border-color: rgba(3, 76, 132, 0.25);
+  border-top-color: var(--blue-deep);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .btn-primary {
   color: var(--white);
   background: linear-gradient(135deg, var(--red), #b90d3c);
@@ -1948,6 +1976,11 @@ textarea:focus {
   font-weight: 800;
 }
 
+.form-note.is-error {
+  color: #b90d3c;
+  font-weight: 800;
+}
+
 .site-footer {
   display: grid;
   grid-template-columns: minmax(240px, 1.1fr) repeat(3, minmax(150px, 0.65fr));
@@ -1995,6 +2028,16 @@ textarea:focus {
 
 .footer-column a:hover {
   color: var(--white);
+}
+
+.footer-legal-note {
+  grid-column: 1 / -1;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-align: center;
 }
 
 .chatbot {

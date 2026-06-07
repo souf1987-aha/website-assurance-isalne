@@ -81,7 +81,7 @@
             <label>Date du sinistre<input type="date" name="claim_date" required></label>
           </div>
           <label>Lieu du sinistre<input type="text" name="claim_place" placeholder="Ville, adresse ou lieu approximatif" required></label>
-          <label>Description du sinistre<textarea name="message" rows="5" placeholder="Expliquez bri&egrave;vement les circonstances, les dommages et les personnes concern&eacute;es." required></textarea></label>
+          <label>Description du sinistre<textarea name="message" rows="5" maxlength="1024" placeholder="Expliquez bri&egrave;vement les circonstances, les dommages et les personnes concern&eacute;es." required></textarea></label>
           <div class="auto-claim-fields is-hidden" data-auto-claim-fields>
             <h3>Pi&egrave;ces automobile</h3>
             <label>Immatriculation<input type="text" name="registration" data-auto-required placeholder="Exemple : 123456-A-80"></label>
@@ -93,7 +93,7 @@
           </div>
           <label>Autres documents utiles<input type="file" name="attachments" multiple accept=".pdf,.jpg,.jpeg,.png"></label>
           <button class="btn btn-primary btn-arrow" type="submit">Envoyer la d&eacute;claration</button>
-          <p class="form-note" data-claim-form-note>Les fichiers ne sont pas encore transmis &agrave; un serveur : ce formulaire est pr&ecirc;t pour une int&eacute;gration email, CRM ou espace sinistre.</p>
+          <p class="form-note" data-claim-form-note>Le message sera pr&eacute;par&eacute; automatiquement dans WhatsApp. Les documents devront ensuite &ecirc;tre joints dans la conversation.</p>
         </form>
       </section>
     </main>
@@ -116,7 +116,7 @@
         <a href="multirisques.html">Multirisques</a>
         <a href="sante-vie.html">Sant&eacute; &amp; Vie</a>
         <a href="responsabilite-civile.html">Responsabilit&eacute; Civile</a>
-        <span>Agent agr&eacute;&eacute; AtlantaSanad</span>
+        
       </div>
       <div class="footer-column">
         <h3>Contact</h3>
@@ -126,6 +126,7 @@
         <a href="https://wa.me/212661744550" target="_blank" rel="noopener">WhatsApp</a>
         <a href="https://www.google.com/maps/search/?api=1&amp;query=9FW6%2B35%20Agadir" target="_blank" rel="noopener">Google Maps</a>
       </div>
+      <div class="footer-legal-note">Agent d'assurance g&eacute;r&eacute; par la loi 17-99 portant le code des assurances</div>
     </footer>
     <section class="chatbot" data-chatbot aria-label="Assistant virtuel Assurances Islane">
       <button class="chatbot-toggle" type="button" data-chatbot-toggle aria-label="Ouvrir le chatbot" aria-expanded="false">

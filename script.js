@@ -18,6 +18,8 @@ const claimProduct = document.querySelector("[data-claim-product]");
 const autoClaimFields = document.querySelector("[data-auto-claim-fields]");
 const autoRequiredFields = document.querySelectorAll("[data-auto-required]");
 const claimFormNote = document.querySelector("[data-claim-form-note]");
+const whatsappNumber = "212661744550";
+const maxAttachmentSize = 5 * 1024 * 1024;
 
 if (logo) {
   logo.addEventListener("error", () => {
@@ -56,7 +58,189 @@ tabs.forEach((tab) => {
   });
 });
 
-form?.addEventListener("submit", (event) => {
+const getTextValue = (data, key) => String(data.get(key) || "").trim();
+
+const getFileNames = (data, key) =>
+  data
+    .getAll(key)
+    .filter((item) => item instanceof File && item.name)
+    .map((file) => file.name)
+    .join(", ");
+
+const openWhatsAppMessage = (message) => {
+  const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+  window.open(url, "_blank", "noopener,noreferrer");
+};
+
+const setSubmitState = (targetForm, isLoading, loadingLabel = "Envoi en cours...") => {
+  const button = targetForm?.querySelector('button[type="submit"]');
+  if (!button) return;
+
+  if (isLoading) {
+    button.dataset.defaultText = button.textContent;
+    button.textContent = loadingLabel;
+    button.disabled = true;
+    button.classList.add("is-loading");
+    button.setAttribute("aria-busy", "true");
+  } else {
+    button.textContent = button.dataset.defaultText || button.textContent;
+    button.disabled = false;
+    button.classList.remove("is-loading");
+    button.removeAttribute("aria-busy");
+  }
+};
+
+const validateFileSizes = (targetForm, noteElement) => {
+  const fileInputs = targetForm?.querySelectorAll('input[type="file"]') || [];
+
+  for (const input of fileInputs) {
+    for (const file of input.files || []) {
+      if (file.size > maxAttachmentSize) {
+        if (noteElement) {
+          noteElement.textContent = `Le fichier "${file.name}" dépasse la limite autorisée de 5 Mo.`;
+          noteElement.classList.remove("is-success");
+          noteElement.classList.add("is-error");
+        }
+        input.focus();
+        return false;
+      }
+    }
+  }
+
+  return true;
+};
+
+const sendFormToBackend = async (type, message, fields = {}) => {
+  let response;
+  let result = {};
+
+  try {
+    response = await fetch(`/api/whatsapp/${type}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, fields }),
+    });
+    result = await response.json().catch(() => ({}));
+  } catch (error) {
+    error.useFallback = true;
+    throw error;
+  }
+
+  if (!response.ok || !result.ok) {
+    const error = new Error(result.error || `Envoi WhatsApp indisponible (${response.status}).`);
+    error.useFallback = false;
+    throw error;
+  }
+
+  return result;
+};
+
+const sendClaimToBackend = async (formData) => {
+  let response;
+  let result = {};
+
+  try {
+    response = await fetch("/api/whatsapp/claim", {
+      method: "POST",
+      body: formData,
+    });
+    result = await response.json().catch(() => ({}));
+  } catch (error) {
+    error.useFallback = true;
+    throw error;
+  }
+
+  if (!response.ok || !result.ok) {
+    const error = new Error(result.error || "Envoi WhatsApp indisponible.");
+    error.useFallback = false;
+    throw error;
+  }
+
+  return result;
+};
+
+const buildRequestMessage = (data) => {
+  const lines = [
+    "Bonjour Assurances Islane,",
+    "",
+    "Je souhaite envoyer une demande depuis le site web.",
+    "",
+    `Nom: ${getTextValue(data, "name")}`,
+    `T\u00e9l\u00e9phone: ${getTextValue(data, "phone")}`,
+    `Objet / produit: ${getTextValue(data, "product")}`,
+  ];
+  const message = getTextValue(data, "message");
+
+  if (message) {
+    lines.push(`Message: ${message}`);
+  }
+
+  return lines.join("\n");
+};
+
+const buildRequestFields = (data) => ({
+  name: getTextValue(data, "name"),
+  phone: getTextValue(data, "phone"),
+  product: getTextValue(data, "product"),
+  message: getTextValue(data, "message"),
+});
+
+const buildClaimMessage = (data) => {
+  const product = getTextValue(data, "product");
+  const lines = [
+    "Bonjour Assurances Islane,",
+    "",
+    "Je souhaite d\u00e9clarer un sinistre depuis le site web.",
+    "",
+    `Nom: ${getTextValue(data, "name")}`,
+    `T\u00e9l\u00e9phone: ${getTextValue(data, "phone")}`,
+    `Produit: ${product}`,
+    `Date du sinistre: ${getTextValue(data, "claim_date")}`,
+    `Lieu du sinistre: ${getTextValue(data, "claim_place")}`,
+    `Description: ${getTextValue(data, "message")}`,
+  ];
+
+  if (product === "automobile") {
+    lines.push(`Immatriculation: ${getTextValue(data, "registration")}`);
+    lines.push(`Constat: ${getFileNames(data, "constat") || "A joindre sur WhatsApp"}`);
+    lines.push(`Carte grise: ${getFileNames(data, "carte_grise") || "A joindre sur WhatsApp"}`);
+    lines.push(`Assurance: ${getFileNames(data, "assurance") || "A joindre sur WhatsApp"}`);
+  }
+
+  const attachments = getFileNames(data, "attachments");
+  if (attachments) {
+    lines.push(`Autres documents: ${attachments}`);
+  }
+
+  lines.push("");
+  lines.push("Je joins les documents directement dans WhatsApp apr\u00e8s l'envoi de ce message.");
+
+  return lines.join("\n");
+};
+
+const buildClaimFields = (data) => {
+  const product = getTextValue(data, "product");
+  const fields = {
+    name: getTextValue(data, "name"),
+    phone: getTextValue(data, "phone"),
+    product,
+    claim_date: getTextValue(data, "claim_date"),
+    claim_place: getTextValue(data, "claim_place"),
+    message: getTextValue(data, "message"),
+    registration: getTextValue(data, "registration"),
+    attachments: getFileNames(data, "attachments"),
+  };
+
+  if (product === "automobile") {
+    fields.constat = getFileNames(data, "constat") || "A joindre sur WhatsApp";
+    fields.carte_grise = getFileNames(data, "carte_grise") || "A joindre sur WhatsApp";
+    fields.assurance = getFileNames(data, "assurance") || "A joindre sur WhatsApp";
+  }
+
+  return fields;
+};
+
+form?.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   if (!form.checkValidity()) {
@@ -66,10 +250,34 @@ form?.addEventListener("submit", (event) => {
 
   const data = new FormData(form);
   const name = String(data.get("name") || "").trim().split(" ")[0] || "Votre demande";
+  const message = buildRequestMessage(data);
+  const fields = buildRequestFields(data);
 
-  formNote.textContent = `${name}, votre demande est pr\u00eate. Branchez ce formulaire \u00e0 l'email ou WhatsApp de l'agence pour l'envoi r\u00e9el.`;
-  formNote.classList.add("is-success");
-  form.reset();
+  setSubmitState(form, true);
+  try {
+    await sendFormToBackend("request", message, fields);
+    if (formNote) {
+      formNote.textContent = `${name}, votre demande a bien \u00e9t\u00e9 envoy\u00e9e sur WhatsApp.`;
+      formNote.classList.add("is-success");
+    }
+    form.reset();
+  } catch (error) {
+    if (!error.useFallback) {
+      if (formNote) {
+        formNote.textContent = `${name}, l'envoi automatique WhatsApp n'a pas abouti : ${error.message}`;
+        formNote.classList.add("is-success");
+      }
+      return;
+    }
+
+    openWhatsAppMessage(message);
+    if (formNote) {
+      formNote.textContent = `${name}, l'envoi automatique n'est pas disponible. Le message est pr\u00eat dans WhatsApp.`;
+      formNote.classList.add("is-success");
+    }
+  } finally {
+    setSubmitState(form, false);
+  }
 });
 
 const syncAutoClaimFields = () => {
@@ -88,7 +296,7 @@ const syncAutoClaimFields = () => {
 claimProduct?.addEventListener("change", syncAutoClaimFields);
 syncAutoClaimFields();
 
-claimForm?.addEventListener("submit", (event) => {
+claimForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   if (!claimForm.checkValidity()) {
@@ -96,19 +304,48 @@ claimForm?.addEventListener("submit", (event) => {
     return;
   }
 
+  if (!validateFileSizes(claimForm, claimFormNote)) {
+    return;
+  }
+
   const data = new FormData(claimForm);
-  const name = String(data.get("name") || "").trim().split(" ")[0] || "Votre déclaration";
+  const name = String(data.get("name") || "").trim().split(" ")[0] || "Votre d\u00e9claration";
   const product = String(data.get("product") || "");
+  const message = buildClaimMessage(data);
 
-  claimFormNote.textContent =
-    product === "automobile"
-      ? `${name}, votre déclaration auto est prête avec les pièces demandées. Branchez ce formulaire à l'email, CRM ou espace sinistre pour l'envoi réel.`
-      : `${name}, votre déclaration est prête. Branchez ce formulaire à l'email, CRM ou espace sinistre pour l'envoi réel.`;
-  claimFormNote.classList.add("is-success");
-  claimForm.reset();
-  syncAutoClaimFields();
+  setSubmitState(claimForm, true, "Envoi de la d\u00e9claration...");
+  try {
+    await sendClaimToBackend(data);
+    if (claimFormNote) {
+      claimFormNote.textContent =
+        product === "automobile"
+          ? `${name}, votre d\u00e9claration auto a bien \u00e9t\u00e9 envoy\u00e9e sur WhatsApp.`
+          : `${name}, votre d\u00e9claration a bien \u00e9t\u00e9 envoy\u00e9e sur WhatsApp.`;
+      claimFormNote.classList.add("is-success");
+    }
+    claimForm.reset();
+    syncAutoClaimFields();
+  } catch (error) {
+    if (!error.useFallback) {
+      if (claimFormNote) {
+        claimFormNote.textContent = `${name}, l'envoi automatique WhatsApp n'a pas abouti : ${error.message}`;
+        claimFormNote.classList.add("is-success");
+      }
+      return;
+    }
+
+    openWhatsAppMessage(message);
+    if (claimFormNote) {
+      claimFormNote.textContent =
+        product === "automobile"
+          ? `${name}, l'envoi automatique n'est pas disponible. Le message est pr\u00eat dans WhatsApp ; joignez ensuite le constat, la carte grise et l'assurance.`
+          : `${name}, l'envoi automatique n'est pas disponible. Le message est pr\u00eat dans WhatsApp.`;
+      claimFormNote.classList.add("is-success");
+    }
+  } finally {
+    setSubmitState(claimForm, false);
+  }
 });
-
 const quickQuestions = [
   "Je veux un devis auto",
   "Comment déclarer un sinistre ?",
