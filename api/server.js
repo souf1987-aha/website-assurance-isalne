@@ -3,6 +3,8 @@ const multer = require("multer");
 const { PDFDocument, StandardFonts, rgb } = require("pdf-lib");
 
 const app = express();
+app.set("trust proxy", true);
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -33,11 +35,73 @@ const templateParamsByType = {
   request: process.env.WHATSAPP_TEMPLATE_REQUEST_PARAMS || "message",
   claim: process.env.WHATSAPP_TEMPLATE_CLAIM_PARAMS || "message",
 };
+const rateLimitMaxRequests = Number(process.env.WHATSAPP_RATE_LIMIT_MAX_REQUESTS || 5);
+const rateLimitWindowMs = Number(process.env.WHATSAPP_RATE_LIMIT_WINDOW_MINUTES || 15) * 60 * 1000;
+const rateLimitBlockMs = Number(process.env.WHATSAPP_RATE_LIMIT_BLOCK_MINUTES || 60) * 60 * 1000;
+const rateLimitStore = new Map();
 
 app.use(express.json({ limit: "1mb" }));
 
 const sendJson = (res, status, payload) => {
   res.status(status).type("application/json; charset=utf-8").set("Cache-Control", "no-store").send(payload);
+};
+
+const getClientIp = (req) => {
+  const forwardedFor = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  return forwardedFor || req.ip || req.socket.remoteAddress || "unknown";
+};
+
+const whatsappRateLimiter = (req, res, next) => {
+  if (!rateLimitMaxRequests || rateLimitMaxRequests < 1) {
+    next();
+    return;
+  }
+
+  const now = Date.now();
+  const ip = getClientIp(req);
+  const current = rateLimitStore.get(ip);
+
+  if (current?.blockedUntil && current.blockedUntil > now) {
+    const retryAfter = Math.ceil((current.blockedUntil - now) / 1000);
+    res.set("Retry-After", String(retryAfter));
+    sendJson(res, 429, {
+      ok: false,
+      error: "Trop de demandes ont ete envoyees depuis cette adresse IP. Veuillez reessayer plus tard.",
+      retryAfter,
+    });
+    return;
+  }
+
+  const windowStart = current?.windowStart && now - current.windowStart < rateLimitWindowMs ? current.windowStart : now;
+  const count = windowStart === current?.windowStart ? current.count + 1 : 1;
+  const nextRecord = { windowStart, count, blockedUntil: 0 };
+
+  if (count > rateLimitMaxRequests) {
+    nextRecord.blockedUntil = now + rateLimitBlockMs;
+    nextRecord.count = rateLimitMaxRequests;
+    rateLimitStore.set(ip, nextRecord);
+    res.set("Retry-After", String(Math.ceil(rateLimitBlockMs / 1000)));
+    sendJson(res, 429, {
+      ok: false,
+      error: "Trop de demandes ont ete envoyees depuis cette adresse IP. Veuillez reessayer plus tard.",
+      retryAfter: Math.ceil(rateLimitBlockMs / 1000),
+    });
+    return;
+  }
+
+  rateLimitStore.set(ip, nextRecord);
+
+  if (rateLimitStore.size > 5000) {
+    for (const [key, record] of rateLimitStore.entries()) {
+      const expiredWindow = now - record.windowStart > rateLimitWindowMs;
+      const expiredBlock = !record.blockedUntil || record.blockedUntil < now;
+      if (expiredWindow && expiredBlock) {
+        rateLimitStore.delete(key);
+      }
+    }
+  }
+
+  next();
 };
 
 const getTemplateParamKeys = (type) => {
@@ -395,6 +459,8 @@ const handleError = (res, error) => {
 app.get(["/health", "/api/health"], (req, res) => {
   sendJson(res, 200, { ok: true });
 });
+
+app.use("/api/whatsapp", whatsappRateLimiter);
 
 app.post("/api/whatsapp/request", async (req, res) => {
   try {
