@@ -2167,6 +2167,31 @@ textarea:focus {
   background: var(--blue);
 }
 
+.chat-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.chat-actions button {
+  padding: 8px 10px;
+  color: var(--blue-deep);
+  background: #eef6fa;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 0.82rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.chat-actions button:hover {
+  color: var(--white);
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
 .chat-message-link {
   display: inline-flex;
   margin-top: 8px;

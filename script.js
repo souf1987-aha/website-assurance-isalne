@@ -20,6 +20,7 @@ const autoRequiredFields = document.querySelectorAll("[data-auto-required]");
 const claimFormNote = document.querySelector("[data-claim-form-note]");
 const whatsappNumber = "212661744550";
 const maxAttachmentSize = 5 * 1024 * 1024;
+let chatFlow = null;
 
 if (logo) {
   logo.addEventListener("error", () => {
@@ -355,6 +356,15 @@ const quickQuestions = [
   "Comment contacter l'agence ?",
 ];
 
+const enhancedQuickQuestions = [
+  { label: "Demander un devis", action: "quote" },
+  { label: "D\u00e9clarer un sinistre", action: "claim" },
+  { label: "Documents auto", question: "Quels documents pour un devis auto ?" },
+  { label: "D\u00e9lai sinistre", question: "Quel d\u00e9lai pour un sinistre ?" },
+  { label: "Produits", question: "Quels produits proposez-vous ?" },
+  { label: "Contact", question: "Comment contacter l'agence ?" },
+];
+
 const codeAnswers = [
   {
     keys: ["code des assurances", "loi assurance", "loi 17-99", "droit assurance", "reglementation"],
@@ -501,6 +511,155 @@ const appendChatMessage = (text, type = "bot", link) => {
   chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
 };
 
+const appendChatActions = (actions = []) => {
+  if (!chatbotMessages || !actions.length) return;
+
+  const container = document.createElement("div");
+  container.className = "chat-message bot chat-actions";
+
+  actions.forEach((action) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = action.label;
+    button.addEventListener("click", action.onClick);
+    container.appendChild(button);
+  });
+
+  chatbotMessages.appendChild(container);
+  chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+};
+
+const appendMainChatActions = () => {
+  appendChatActions([
+    { label: "Demander un devis", onClick: startQuoteFlow },
+    { label: "D\u00e9clarer un sinistre", onClick: startClaimFlow },
+    { label: "Documents utiles", onClick: () => enhancedAnswerQuestion("Quels documents pour un devis auto ?") },
+    { label: "Contacter l'agence", onClick: () => enhancedAnswerQuestion("Comment contacter l'agence ?") },
+  ]);
+};
+
+const resetChatFlow = () => {
+  chatFlow = null;
+  appendChatMessage("D'accord. Que souhaitez-vous faire maintenant ?");
+  appendMainChatActions();
+};
+
+const startQuoteFlow = () => {
+  chatFlow = { type: "quote", step: "product", data: {} };
+  appendChatMessage("Tr\u00e8s bien, je vais pr\u00e9parer une demande de devis. Quel produit vous int\u00e9resse ?");
+  appendChatActions([
+    { label: "Automobile", onClick: () => handleChatFlowInput("Automobile") },
+    { label: "Sant\u00e9 / Vie", onClick: () => handleChatFlowInput("Sant\u00e9 / Vie") },
+    { label: "Multirisques", onClick: () => handleChatFlowInput("Multirisques") },
+    { label: "Responsabilit\u00e9 civile", onClick: () => handleChatFlowInput("Responsabilit\u00e9 civile") },
+  ]);
+};
+
+const startClaimFlow = () => {
+  chatFlow = { type: "claim", step: "product", data: {} };
+  appendChatMessage("Je peux vous aider \u00e0 pr\u00e9parer la d\u00e9claration. Quel produit est concern\u00e9 ?");
+  appendChatActions([
+    { label: "Automobile", onClick: () => handleChatFlowInput("Automobile") },
+    { label: "Habitation / Commerce", onClick: () => handleChatFlowInput("Habitation / Commerce") },
+    { label: "Sant\u00e9 / Vie", onClick: () => handleChatFlowInput("Sant\u00e9 / Vie") },
+    { label: "Autre", onClick: () => handleChatFlowInput("Autre") },
+  ]);
+};
+
+const finishQuoteFlow = async () => {
+  const { product, name, phone, message } = chatFlow.data;
+  const payloadMessage = [
+    "Bonjour Assurances Islane,",
+    "",
+    "Je souhaite envoyer une demande de devis depuis le chatbot.",
+    "",
+    `Nom: ${name}`,
+    `T\u00e9l\u00e9phone: ${phone}`,
+    `Objet / produit: ${product}`,
+    `Message: ${message || "Demande de devis"}`,
+  ].join("\n");
+
+  appendChatMessage("Merci. J'envoie la demande \u00e0 l'agence...");
+
+  try {
+    await sendFormToBackend("request", payloadMessage, {
+      name,
+      phone,
+      product,
+      message: message || "Demande de devis depuis le chatbot",
+    });
+    appendChatMessage("Votre demande a bien \u00e9t\u00e9 transmise \u00e0 l'agence sur WhatsApp. Vous serez recontact\u00e9 prochainement.");
+    chatFlow = null;
+    appendMainChatActions();
+  } catch (error) {
+    appendChatMessage(`L'envoi automatique n'a pas abouti : ${error.message}. Vous pouvez utiliser la page Devis.`, "bot", {
+      href: "devis.html",
+      label: "Ouvrir le devis",
+    });
+    chatFlow = null;
+  }
+};
+
+const handleChatFlowInput = async (value) => {
+  if (!chatFlow) return false;
+
+  const text = String(value || "").trim();
+  if (!text) return true;
+
+  appendChatMessage(text, "user");
+
+  if (normalizeMessage(text) === "annuler" || normalizeMessage(text) === "recommencer") {
+    resetChatFlow();
+    return true;
+  }
+
+  if (chatFlow.type === "quote") {
+    if (chatFlow.step === "product") {
+      chatFlow.data.product = text;
+      chatFlow.step = "name";
+      appendChatMessage("Votre nom complet ?");
+      return true;
+    }
+
+    if (chatFlow.step === "name") {
+      chatFlow.data.name = text;
+      chatFlow.step = "phone";
+      appendChatMessage("Votre num\u00e9ro de t\u00e9l\u00e9phone ?");
+      return true;
+    }
+
+    if (chatFlow.step === "phone") {
+      chatFlow.data.phone = text;
+      chatFlow.step = "message";
+      appendChatMessage("Ajoutez un court message ou les garanties souhait\u00e9es. Vous pouvez aussi \u00e9crire \"RAS\".");
+      return true;
+    }
+
+    if (chatFlow.step === "message") {
+      chatFlow.data.message = normalizeMessage(text) === "ras" ? "" : text;
+      await finishQuoteFlow();
+      return true;
+    }
+  }
+
+  if (chatFlow.type === "claim") {
+    chatFlow = null;
+    appendChatMessage(
+      text.toLowerCase().includes("auto")
+        ? "Pour un sinistre automobile, pr\u00e9parez le constat, la carte grise, l'attestation d'assurance, la date, le lieu et l'immatriculation. Le formulaire permet de joindre les documents."
+        : "Pour ce sinistre, pr\u00e9parez la date, le lieu, une description claire et les justificatifs disponibles. Le formulaire permet de transmettre le dossier \u00e0 l'agence."
+    );
+    appendChatActions([
+      { label: "Ouvrir le formulaire sinistre", onClick: () => { window.location.href = "sinistre.html#declaration-sinistre"; } },
+      { label: "Documents fr\u00e9quents", onClick: () => enhancedAnswerQuestion("Quels documents pour un sinistre ?") },
+      { label: "Recommencer", onClick: resetChatFlow },
+    ]);
+    return true;
+  }
+
+  return false;
+};
+
 const findAnswer = (question) => {
   const normalized = normalizeMessage(question);
   return answers.find((answer) => answer.keys.some((key) => normalized.includes(normalizeMessage(key))));
@@ -522,6 +681,18 @@ const answerQuestion = (question) => {
   );
 };
 
+const enhancedAnswerQuestion = async (question) => {
+  if (chatFlow && (await handleChatFlowInput(question))) {
+    return;
+  }
+
+  answerQuestion(question);
+  appendChatActions([
+    { label: "Demander un devis", onClick: startQuoteFlow },
+    { label: "D\u00e9clarer un sinistre", onClick: startClaimFlow },
+  ]);
+};
+
 const openChatbot = () => {
   chatbot?.classList.add("is-open");
   chatbotToggle?.setAttribute("aria-expanded", "true");
@@ -539,13 +710,21 @@ if (chatbot && chatbotMessages && chatbotSuggestions) {
     "Bonjour, je suis l'assistant Islane. Posez-moi une question sur un devis, un sinistre, une garantie ou les coordonnées de l'agence. Mes réponses sont informatives; la validation finale se fait auprès de l'agence."
   );
 
-  quickQuestions.forEach((question) => {
+  enhancedQuickQuestions.forEach((question) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = question;
-    button.addEventListener("click", () => {
+    button.textContent = question.label || question;
+    button.addEventListener("click", async () => {
       openChatbot();
-      answerQuestion(question);
+      if (question.action === "quote") {
+        startQuoteFlow();
+        return;
+      }
+      if (question.action === "claim") {
+        startClaimFlow();
+        return;
+      }
+      await enhancedAnswerQuestion(question.question || question);
     });
     chatbotSuggestions.appendChild(button);
   });
@@ -562,13 +741,13 @@ chatbotToggle?.addEventListener("click", () => {
 
 chatbotClose?.addEventListener("click", closeChatbot);
 
-chatbotForm?.addEventListener("submit", (event) => {
+chatbotForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const input = chatbotForm.querySelector("input");
   const question = input?.value.trim();
   if (!question) return;
 
-  answerQuestion(question);
+  await enhancedAnswerQuestion(question);
   input.value = "";
 });

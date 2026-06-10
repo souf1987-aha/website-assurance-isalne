@@ -1,0 +1,35 @@
+services:
+  umami-db:
+    image: postgres:15-alpine
+    container_name: assurances-islane-umami-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${UMAMI_POSTGRES_DB:-umami}
+      POSTGRES_USER: ${UMAMI_POSTGRES_USER:-umami}
+      POSTGRES_PASSWORD: ${UMAMI_POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - umami-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${UMAMI_POSTGRES_USER:-umami} -d ${UMAMI_POSTGRES_DB:-umami}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  umami:
+    image: docker.umami.is/umami-software/umami:postgresql-latest
+    container_name: assurances-islane-umami
+    restart: unless-stopped
+    depends_on:
+      umami-db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${UMAMI_POSTGRES_USER:-umami}:${UMAMI_POSTGRES_PASSWORD:-change-me}@umami-db:5432/${UMAMI_POSTGRES_DB:-umami}
+      DATABASE_TYPE: postgresql
+      APP_SECRET: ${UMAMI_APP_SECRET:-change-me}
+      CLIENT_IP_HEADER: X-Forwarded-For
+      DISABLE_TELEMETRY: 1
+    ports:
+      - "${UMAMI_PORT:-127.0.0.1:3001}:3000"
+
+volumes:
+  umami-db-data:
