@@ -142,6 +142,34 @@ textarea {
   background: var(--red);
 }
 
+.language-switch {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 2px;
+  padding: 2px;
+  background: #eef6fa;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.language-switch a {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 7px;
+  color: var(--blue-deep);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.language-switch a.is-active {
+  color: var(--white);
+  background: var(--blue);
+}
+
 .menu-toggle {
   display: none;
   width: 44px;
@@ -356,6 +384,107 @@ h3 {
   margin: 28px 0 34px;
 }
 
+[dir="rtl"] body,
+.rtl-page {
+  direction: rtl;
+  font-family: "Tahoma", "Arial", sans-serif;
+  text-align: right;
+}
+
+[dir="rtl"] .site-header,
+[dir="rtl"] .hero-actions,
+[dir="rtl"] .trust-strip,
+[dir="rtl"] .product-tabs,
+[dir="rtl"] .chatbot-form {
+  direction: rtl;
+}
+
+[dir="rtl"] .nav a::after {
+  right: 0;
+  left: auto;
+  width: 100%;
+  transform-origin: right;
+}
+
+.rtl-page .nav a:hover::after,
+.rtl-page .nav a.is-active::after,
+.rtl-page .nav a[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+[dir="rtl"] .btn-arrow::after {
+  content: "<";
+  direction: ltr;
+  display: inline-block;
+  transform: none;
+  unicode-bidi: isolate;
+}
+
+[dir="rtl"] .section-head,
+[dir="rtl"] .contact-copy,
+[dir="rtl"] .footer-column,
+[dir="rtl"] .footer-brand-block p,
+[dir="rtl"] .page-hero,
+[dir="rtl"] .hero-content {
+  text-align: right;
+}
+
+[dir="rtl"] .brand-logo {
+  object-position: right center;
+}
+
+.ltr-text {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+}
+
+.hero.hero-left-copy .hero-content {
+  justify-self: right;
+  margin-right: 0;
+  margin-left: auto;
+  text-align: right;
+}
+
+.hero.hero-left-copy .hero-actions,
+.hero.hero-left-copy .trust-strip {
+  direction: rtl;
+  justify-content: flex-start;
+}
+
+.rtl-page .hero-left-copy .hero-media {
+  transform: scaleX(-1);
+}
+
+.rtl-page .page-hero-visual img {
+  transform: scaleX(-1);
+}
+
+.rtl-page .page-hero::before {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.28) 34%, rgba(255, 255, 255, 0.9) 70%, rgba(255, 255, 255, 0.98) 100%);
+}
+
+.rtl-page .page-hero-visual .page-hero-card {
+  right: auto;
+  left: clamp(20px, 6vw, 86px);
+  background: rgba(255, 255, 255, 0.97);
+  overflow: visible;
+}
+
+.rtl-page .page-hero-visual .page-hero-card h2,
+.rtl-page .page-hero-visual .page-hero-card p {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.rtl-page .hero-left-copy .hero-overlay {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.18) 34%, rgba(255, 255, 255, 0.84) 70%, rgba(255, 255, 255, 0.97) 100%);
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -418,6 +547,14 @@ h3 {
 .btn-arrow::after {
   content: ">";
   font-weight: 900;
+}
+
+[dir="rtl"] .btn-arrow::after {
+  content: "<";
+  direction: ltr;
+  display: inline-block;
+  transform: none;
+  unicode-bidi: isolate;
 }
 
 .btn-outline::before {
@@ -1550,6 +1687,45 @@ section {
   opacity: 0.78;
 }
 
+[dir="rtl"] .claim-workflow {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+[dir="rtl"] .claim-workflow li {
+  min-width: 0;
+  min-height: auto;
+  grid-template-columns: 1fr;
+  overflow-wrap: anywhere;
+}
+
+[dir="rtl"] .claim-workflow strong,
+[dir="rtl"] .claim-workflow small {
+  overflow-wrap: anywhere;
+}
+
+[dir="rtl"] .claim-workflow li:not(:last-child)::after {
+  right: auto;
+  left: -9px;
+}
+
+.content-panel .claim-workflow li {
+  background: #f7fbfd;
+  border-color: var(--line);
+}
+
+.content-panel .claim-workflow strong {
+  color: var(--blue-deep);
+}
+
+.content-panel .claim-workflow small {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.content-panel .claim-workflow li:not(:last-child)::after {
+  background: var(--line);
+}
+
 .claims-panel h2 {
   color: var(--white);
 }
@@ -2263,9 +2439,15 @@ textarea:focus {
 @media (max-width: 820px) {
   .site-header {
     min-height: 88px;
+    gap: 10px;
+  }
+
+  .language-switch {
+    order: 2;
   }
 
   .menu-toggle {
+    order: 3;
     display: block;
   }
 
@@ -2325,6 +2507,13 @@ textarea:focus {
     bottom: 28px;
     left: 20px;
     width: auto;
+  }
+
+  .rtl-page .page-hero-visual .page-hero-card {
+    right: 20px;
+    left: 20px;
+    width: auto;
+    max-width: none;
   }
 
   .section-grid,

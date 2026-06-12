@@ -20,6 +20,38 @@ const autoRequiredFields = document.querySelectorAll("[data-auto-required]");
 const claimFormNote = document.querySelector("[data-claim-form-note]");
 const whatsappNumber = "212661744550";
 const maxAttachmentSize = 5 * 1024 * 1024;
+const isArabicPage = document.documentElement.lang?.toLowerCase().startsWith("ar");
+const uiText = {
+  loading: isArabicPage ? "جار الإرسال..." : "Envoi en cours...",
+  requestFallbackName: isArabicPage ? "طلبكم" : "Votre demande",
+  claimFallbackName: isArabicPage ? "تصريحكم" : "Votre d\u00e9claration",
+  requestSuccess: (name) =>
+    isArabicPage ? `${name}، تم إرسال طلبكم بنجاح عبر WhatsApp.` : `${name}, votre demande a bien \u00e9t\u00e9 envoy\u00e9e sur WhatsApp.`,
+  requestAutoError: (name, error) =>
+    isArabicPage
+      ? `${name}، تعذر الإرسال التلقائي عبر WhatsApp: ${error}`
+      : `${name}, l'envoi automatique WhatsApp n'a pas abouti : ${error}`,
+  requestFallbackSuccess: (name) =>
+    isArabicPage
+      ? `${name}، الإرسال التلقائي غير متاح. الرسالة جاهزة في WhatsApp.`
+      : `${name}, l'envoi automatique n'est pas disponible. Le message est pr\u00eat dans WhatsApp.`,
+  claimSuccess: (name, isAuto) =>
+    isArabicPage
+      ? `${name}، تم إرسال التصريح بنجاح عبر WhatsApp.`
+      : isAuto
+      ? `${name}, votre d\u00e9claration auto a bien \u00e9t\u00e9 envoy\u00e9e sur WhatsApp.`
+      : `${name}, votre d\u00e9claration a bien \u00e9t\u00e9 envoy\u00e9e sur WhatsApp.`,
+  claimAutoError: (name, error) =>
+    isArabicPage
+      ? `${name}، تعذر الإرسال التلقائي عبر WhatsApp: ${error}`
+      : `${name}, l'envoi automatique WhatsApp n'a pas abouti : ${error}`,
+  claimFallbackSuccess: (name, isAuto) =>
+    isArabicPage
+      ? `${name}، الإرسال التلقائي غير متاح. الرسالة جاهزة في WhatsApp.`
+      : isAuto
+      ? `${name}, l'envoi automatique n'est pas disponible. Le message est pr\u00eat dans WhatsApp ; joignez ensuite le constat, la carte grise et l'assurance.`
+      : `${name}, l'envoi automatique n'est pas disponible. Le message est pr\u00eat dans WhatsApp.`,
+};
 let chatFlow = null;
 
 if (logo) {
@@ -73,7 +105,7 @@ const openWhatsAppMessage = (message) => {
   window.open(url, "_blank", "noopener,noreferrer");
 };
 
-const setSubmitState = (targetForm, isLoading, loadingLabel = "Envoi en cours...") => {
+const setSubmitState = (targetForm, isLoading, loadingLabel = uiText.loading) => {
   const button = targetForm?.querySelector('button[type="submit"]');
   if (!button) return;
 
@@ -161,6 +193,25 @@ const sendClaimToBackend = async (formData) => {
 };
 
 const buildRequestMessage = (data) => {
+  if (isArabicPage) {
+    const lines = [
+      "مرحبا تأمينات إسلان،",
+      "",
+      "أرغب في إرسال طلب من الموقع الإلكتروني.",
+      "",
+      `الاسم: ${getTextValue(data, "name")}`,
+      `الهاتف: ${getTextValue(data, "phone")}`,
+      `المنتج / الموضوع: ${getTextValue(data, "product")}`,
+    ];
+    const message = getTextValue(data, "message");
+
+    if (message) {
+      lines.push(`الرسالة: ${message}`);
+    }
+
+    return lines.join("\n");
+  }
+
   const lines = [
     "Bonjour Assurances Islane,",
     "",
@@ -250,7 +301,7 @@ form?.addEventListener("submit", async (event) => {
   }
 
   const data = new FormData(form);
-  const name = String(data.get("name") || "").trim().split(" ")[0] || "Votre demande";
+  const name = String(data.get("name") || "").trim().split(" ")[0] || uiText.requestFallbackName;
   const message = buildRequestMessage(data);
   const fields = buildRequestFields(data);
 
@@ -258,14 +309,14 @@ form?.addEventListener("submit", async (event) => {
   try {
     await sendFormToBackend("request", message, fields);
     if (formNote) {
-      formNote.textContent = `${name}, votre demande a bien \u00e9t\u00e9 envoy\u00e9e sur WhatsApp.`;
+      formNote.textContent = uiText.requestSuccess(name);
       formNote.classList.add("is-success");
     }
     form.reset();
   } catch (error) {
     if (!error.useFallback) {
       if (formNote) {
-        formNote.textContent = `${name}, l'envoi automatique WhatsApp n'a pas abouti : ${error.message}`;
+        formNote.textContent = uiText.requestAutoError(name, error.message);
         formNote.classList.add("is-success");
       }
       return;
@@ -273,7 +324,7 @@ form?.addEventListener("submit", async (event) => {
 
     openWhatsAppMessage(message);
     if (formNote) {
-      formNote.textContent = `${name}, l'envoi automatique n'est pas disponible. Le message est pr\u00eat dans WhatsApp.`;
+      formNote.textContent = uiText.requestFallbackSuccess(name);
       formNote.classList.add("is-success");
     }
   } finally {
@@ -310,7 +361,7 @@ claimForm?.addEventListener("submit", async (event) => {
   }
 
   const data = new FormData(claimForm);
-  const name = String(data.get("name") || "").trim().split(" ")[0] || "Votre d\u00e9claration";
+  const name = String(data.get("name") || "").trim().split(" ")[0] || uiText.claimFallbackName;
   const product = String(data.get("product") || "");
   const message = buildClaimMessage(data);
 
@@ -318,10 +369,7 @@ claimForm?.addEventListener("submit", async (event) => {
   try {
     await sendClaimToBackend(data);
     if (claimFormNote) {
-      claimFormNote.textContent =
-        product === "automobile"
-          ? `${name}, votre d\u00e9claration auto a bien \u00e9t\u00e9 envoy\u00e9e sur WhatsApp.`
-          : `${name}, votre d\u00e9claration a bien \u00e9t\u00e9 envoy\u00e9e sur WhatsApp.`;
+      claimFormNote.textContent = uiText.claimSuccess(name, product === "automobile");
       claimFormNote.classList.add("is-success");
     }
     claimForm.reset();
@@ -329,7 +377,7 @@ claimForm?.addEventListener("submit", async (event) => {
   } catch (error) {
     if (!error.useFallback) {
       if (claimFormNote) {
-        claimFormNote.textContent = `${name}, l'envoi automatique WhatsApp n'a pas abouti : ${error.message}`;
+        claimFormNote.textContent = uiText.claimAutoError(name, error.message);
         claimFormNote.classList.add("is-success");
       }
       return;
@@ -337,10 +385,7 @@ claimForm?.addEventListener("submit", async (event) => {
 
     openWhatsAppMessage(message);
     if (claimFormNote) {
-      claimFormNote.textContent =
-        product === "automobile"
-          ? `${name}, l'envoi automatique n'est pas disponible. Le message est pr\u00eat dans WhatsApp ; joignez ensuite le constat, la carte grise et l'assurance.`
-          : `${name}, l'envoi automatique n'est pas disponible. Le message est pr\u00eat dans WhatsApp.`;
+      claimFormNote.textContent = uiText.claimFallbackSuccess(name, product === "automobile");
       claimFormNote.classList.add("is-success");
     }
   } finally {
